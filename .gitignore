@@ -1,0 +1,35 @@
+# Virtual environment
+venv/
+env/
+*.env
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment variables
+.env
+
+# FAISS index and metadata
+faiss_index_multiple_pdfs/
+index_metadata.json
+
+# Logs
+*.log
+
+# Jupyter Notebooks checkpoints
+.ipynb_checkpoints/
+
+# IDE-related files
+.vscode/
+.idea/
+
+# Build artifacts
+*.egg-info/
+dist/
+build/
+
+# Temporary files
+*.swp
+*.bak

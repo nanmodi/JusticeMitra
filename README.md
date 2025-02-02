@@ -66,6 +66,9 @@ JusticeMitra is an AI-powered legal assistant designed to help women in India un
 5. Access previous searches from the sidebar.
 
 
+![Screenshot 2025-02-01 230045](https://github.com/user-attachments/assets/fd2a5753-d641-48ee-b29b-859c85a04a69)
+
+
 
 ## Challenges Faced
 - Ensuring **accurate legal information retrieval**.

@@ -7,7 +7,7 @@ import logging
 from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_groq import ChatGroq
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains import create_retrieval_chain
@@ -16,12 +16,11 @@ from langchain_core.prompts import PromptTemplate
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-load_dotenv()  # Load environment variables from .env
-
+load_dotenv() 
 
 PDF_FILES = [
     os.path.join("data", "WomenRightsinIndiacomplete_compressed.pdf"),
-    os.path.join("data", "Majlis_Legal-rights-of-women.pdf"),
+    os.path.join("data", "Majlis_Legal Rights-of-women.pdf"),
 ]
 
 FAISS_INDEX_PATH = "faiss_index_multiple_pdfs"
@@ -52,10 +51,10 @@ def load_existing_index():
 
         if stored_metadata == current_hashes:
             embeddings = HuggingFaceEmbeddings(
-                model_name="sentence-transformers/all-MiniLM-L6-v2"
-                
+                model_name="sentence-transformers/all-MiniLM-L6-v2",
+                model_kwargs={'device': 'cpu'}
             )
-            db = FAISS.load_local(FAISS_INDEX_PATH, embeddings)
+            db = FAISS.load_local(FAISS_INDEX_PATH, embeddings, allow_dangerous_deserialization=True)
             logger.info("FAISS index is up-to-date. Loading existing index.")
             return db
         else:
@@ -90,6 +89,11 @@ def create_new_index():
             logger.error(f"Error loading PDF {pdf_path}: {str(e)}")
             st.error(f"Error loading PDF {pdf_path}")
 
+    if not all_documents:
+        logger.error("No documents loaded from PDFs. Cannot create FAISS index.")
+        st.error("No documents loaded from PDFs. Please check the PDF files and try again.")
+        return None
+
     db = FAISS.from_documents(all_documents, embeddings)
     db.save_local(FAISS_INDEX_PATH)
 
@@ -105,6 +109,9 @@ def get_faiss_index():
     db = load_existing_index()
     if db is None:
         db = create_new_index()
+    if db is None:
+        st.error("Failed to load or create FAISS index. Please check the logs and PDF files.")
+        return None
     return db
 
 def main():
@@ -127,10 +134,18 @@ def main():
         st.sidebar.write("No previous searches.")
 
     db = get_faiss_index()
+    if db is None:
+        return  
+
     retriever = db.as_retriever()
 
-    # Fetch the API key from Streamlit's Secrets management system
-    groq_api_key = st.secrets["GROQ_API_KEY"]
+   
+    try:
+        groq_api_key = st.secrets["GROQ_API_KEY"]
+    except KeyError:
+        st.error("GROQ_API_KEY not found in Streamlit secrets. Please configure it in the Streamlit Cloud dashboard.")
+        return
+
     llm = ChatGroq(groq_api_key=groq_api_key, model_name="Llama3-8b-8192")
 
     prompt_template = PromptTemplate(
@@ -154,21 +169,26 @@ def main():
         st.session_state.previous_searches.append(query)
 
         with st.spinner("Searching for relevant information..."):
-            response = retrieval_chain.invoke({"input": query})
-
-            if response:
-                st.write("**Important Information:**")
-                st.write(response["answer"])
-                st.write("---")
-                st.write("**Emergency Contacts and Helplines:**")
-                st.markdown("""
-                    - **Police Emergency**: 100
-                    - **Women's Helpline**: 1091
-                    - **National Commission for Women**: 011-26944880, 26944883
-                    - **Domestic Violence Helpline**: 181
-                    - **Legal Services Authority**: 1516
-                    *Please save these numbers for future reference.*
-                """)
+            try:
+                response = retrieval_chain.invoke({"input": query})
+                if response and "answer" in response:
+                    st.write("**Important Information:**")
+                    st.write(response["answer"])
+                    st.write("---")
+                    st.write("**Emergency Contacts and Helplines:**")
+                    st.markdown("""
+                        - **Police Emergency**: 100
+                        - **Women's Helpline**: 1091
+                        - **National Commission for Women**: 011-26944880, 26944883
+                        - **Domestic Violence Helpline**: 181
+                        - **Legal Services Authority**: 1516
+                        *Please save these numbers for future reference.*
+                    """)
+                else:
+                    st.error("No relevant information found. Please try a different query.")
+            except Exception as e:
+                st.error(f"Error processing query: {str(e)}")
+                logger.error(f"Error in retrieval chain: {str(e)}")
 
 if __name__ == "__main__":
     main()

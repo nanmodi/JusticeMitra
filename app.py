@@ -16,11 +16,11 @@ from langchain_core.prompts import PromptTemplate
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-load_dotenv() 
+load_dotenv()
 
 PDF_FILES = [
     os.path.join("data", "WomenRightsinIndiacomplete_compressed.pdf"),
-    os.path.join("data", "Majlis_Legal Rights-of-women.pdf"),
+    os.path.join("data", "Majlis_Legal_Rights_of_women.pdf"),
 ]
 
 FAISS_INDEX_PATH = "faiss_index_multiple_pdfs"
@@ -50,7 +50,7 @@ def load_existing_index():
         current_hashes = {pdf: compute_file_hash(pdf) for pdf in PDF_FILES}
 
         if stored_metadata == current_hashes:
-            embeddings = HuggingFaceEmbeddings(
+            embeddings = HuggingFace   embeddings = HuggingFaceEmbeddings(
                 model_name="sentence-transformers/all-MiniLM-L6-v2",
                 model_kwargs={'device': 'cpu'}
             )
@@ -59,10 +59,8 @@ def load_existing_index():
             return db
         else:
             logger.info("PDF files have changed. Rebuilding FAISS index.")
-
     except Exception as e:
         logger.error(f"Error loading FAISS index: {str(e)}")
-
     return None
 
 def create_new_index():
@@ -72,22 +70,29 @@ def create_new_index():
         model_kwargs={'device': 'cpu'}
     )
 
+    if not os.path.exists("data"):
+        logger.error("Data directory not found.")
+        st.error("Data directory not found. Please ensure the 'data' directory exists with the PDF files.")
+        return None
+
     all_documents = []
     for pdf_path in PDF_FILES:
+        if not os.path.exists(pdf_path):
+            logger.error(f"PDF file not found: {pdf_path}")
+            st.error(f"PDF file not found: {pdf_path}")
+            continue
         try:
             loader = PyPDFLoader(pdf_path)
             docs = loader.load()
-
             text_splitter = RecursiveCharacterTextSplitter(
                 chunk_size=2000,
                 chunk_overlap=200
             )
             documents = text_splitter.split_documents(docs)
             all_documents.extend(documents)
-
         except Exception as e:
             logger.error(f"Error loading PDF {pdf_path}: {str(e)}")
-            st.error(f"Error loading PDF {pdf_path}")
+            st.error(f"Error loading PDF {pdf_path}: {str(e)}")
 
     if not all_documents:
         logger.error("No documents loaded from PDFs. Cannot create FAISS index.")
@@ -135,11 +140,10 @@ def main():
 
     db = get_faiss_index()
     if db is None:
-        return  
+        return
 
     retriever = db.as_retriever()
 
-   
     try:
         groq_api_key = st.secrets["GROQ_API_KEY"]
     except KeyError:

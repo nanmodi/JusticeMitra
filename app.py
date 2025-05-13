@@ -50,7 +50,7 @@ def load_existing_index():
         current_hashes = {pdf: compute_file_hash(pdf) for pdf in PDF_FILES}
 
         if stored_metadata == current_hashes:
-            embeddings = HuggingFace   embeddings = HuggingFaceEmbeddings(
+                embeddings = HuggingFaceEmbeddings(
                 model_name="sentence-transformers/all-MiniLM-L6-v2",
                 model_kwargs={'device': 'cpu'}
             )

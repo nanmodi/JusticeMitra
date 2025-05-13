@@ -16,22 +16,30 @@ from langchain_core.prompts import PromptTemplate
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-load_dotenv()
+load_dotenv()  # Load environment variables from .env
+
+# Update PDF paths for deployment
+# If you're deploying, you need to make sure PDFs are in the project directory (e.g., 'data' folder).
+# Streamlit Cloud will look for files inside the project structure.
+PDF_FILES = [
+    os.path.join("data", "Women’s Rights in India complete_compressed.pdf"),
+    os.path.join("data", "Majlis_Legal-rights-of-women.pdf"),
+]
 
 FAISS_INDEX_PATH = "faiss_index_multiple_pdfs"
 INDEX_METADATA_PATH = "index_metadata.json"
-PDF_FILES = [
-    r"D:\project1\WomenRight\data\Women’s Rights in India complete_compressed.pdf",
-    r"D:\project1\WomenRight\data\Majlis_Legal-rights-of-women.pdf",
-]
 
 def compute_file_hash(file_path):
     """Compute SHA256 hash of a file to detect changes."""
     hasher = hashlib.sha256()
-    with open(file_path, "rb") as f:
-        while chunk := f.read(8192):
-            hasher.update(chunk)
-    return hasher.hexdigest()
+    try:
+        with open(file_path, "rb") as f:
+            while chunk := f.read(8192):
+                hasher.update(chunk)
+        return hasher.hexdigest()
+    except Exception as e:
+        logger.error(f"Error computing file hash for {file_path}: {str(e)}")
+        return None
 
 def load_existing_index():
     """Check if FAISS index and metadata exist and are up-to-date."""
@@ -110,11 +118,9 @@ def main():
 
     st.title("JusticeMitra")
 
-    
     if "previous_searches" not in st.session_state:
         st.session_state.previous_searches = []
 
-    
     st.sidebar.header("Previous Searches")
     if st.session_state.previous_searches:
         for idx, query in enumerate(st.session_state.previous_searches):
@@ -125,7 +131,8 @@ def main():
     db = get_faiss_index()
     retriever = db.as_retriever()
 
-    groq_api_key = os.getenv('GROQ_API_KEY')
+    # Fetch the API key from Streamlit's Secrets management system
+    groq_api_key = st.secrets["GROQ_API_KEY"]
     llm = ChatGroq(groq_api_key=groq_api_key, model_name="Llama3-8b-8192")
 
     prompt_template = PromptTemplate(
@@ -146,7 +153,6 @@ def main():
     query = st.text_input("Please describe your situation or ask your question:")
 
     if query:
-      
         st.session_state.previous_searches.append(query)
 
         with st.spinner("Searching for relevant information..."):
@@ -165,7 +171,6 @@ def main():
                     - **Legal Services Authority**: 1516
                     *Please save these numbers for future reference.*
                 """)
-
 
 if __name__ == "__main__":
     main()

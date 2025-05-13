@@ -20,7 +20,7 @@ load_dotenv()  # Load environment variables from .env
 
 
 PDF_FILES = [
-    os.path.join("data", "Women’s Rights in India complete_compressed.pdf"),
+    os.path.join("data", "WomenRightsinIndiacomplete_compressed.pdf"),
     os.path.join("data", "Majlis_Legal-rights-of-women.pdf"),
 ]
 

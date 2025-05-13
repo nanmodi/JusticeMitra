@@ -18,9 +18,7 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()  # Load environment variables from .env
 
-# Update PDF paths for deployment
-# If you're deploying, you need to make sure PDFs are in the project directory (e.g., 'data' folder).
-# Streamlit Cloud will look for files inside the project structure.
+
 PDF_FILES = [
     os.path.join("data", "Women’s Rights in India complete_compressed.pdf"),
     os.path.join("data", "Majlis_Legal-rights-of-women.pdf"),

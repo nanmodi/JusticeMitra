@@ -1,13 +1,12 @@
-streamlit==1.39.0
-langchain==0.3.2
-langchain-community==0.3.1
+streamlit==1.38.0
+langchain==0.3.0
+langchain-community==0.3.0
 langchain-huggingface==0.1.0
 langchain-groq==0.2.0
-pypdf==5.0.1
-faiss-cpu==1.9.0
-sentence-transformers==3.2.1
-torch==2.4.1
-numpy<2.0.0
+faiss-cpu==1.8.0
+pypdf==5.0.0
+sentence-transformers==3.1.0
 python-dotenv==1.0.1
-huggingface_hub==0.25.2
-hf_xet==1.1.1
+pymupdf==1.24.9  # Optional, if using PyMuPDF
+unstructured==0.15.0  # Optional, if using UnstructuredPDFLoader
+pytesseract==0.3.10  # Optional, for OCR

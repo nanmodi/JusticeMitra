@@ -7,4 +7,5 @@ faiss-cpu
 python-dotenv
 huggingface-hub
 sentence-transformers
+torch
 

@@ -52,8 +52,8 @@ def load_existing_index():
 
         if stored_metadata == current_hashes:
             embeddings = HuggingFaceEmbeddings(
-                model_name="sentence-transformers/all-MiniLM-L6-v2",
-                model_kwargs={'device': 'cpu'}
+                model_name="sentence-transformers/all-MiniLM-L6-v2"
+                
             )
             db = FAISS.load_local(FAISS_INDEX_PATH, embeddings)
             logger.info("FAISS index is up-to-date. Loading existing index.")

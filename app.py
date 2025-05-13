@@ -50,7 +50,7 @@ def load_existing_index():
         current_hashes = {pdf: compute_file_hash(pdf) for pdf in PDF_FILES}
 
         if stored_metadata == current_hashes:
-                embeddings = HuggingFaceEmbeddings(
+            embeddings = HuggingFaceEmbeddings(
                 model_name="sentence-transformers/all-MiniLM-L6-v2",
                 model_kwargs={'device': 'cpu'}
             )
@@ -70,7 +70,7 @@ def create_new_index():
         model_kwargs={'device': 'cpu'}
     )
 
-    if not os.path.exists("data"):
+    if not os.path.exists(".browser_session"):
         logger.error("Data directory not found.")
         st.error("Data directory not found. Please ensure the 'data' directory exists with the PDF files.")
         return None
@@ -150,7 +150,7 @@ def main():
         st.error("GROQ_API_KEY not found in Streamlit secrets. Please configure it in the Streamlit Cloud dashboard.")
         return
 
-    llm = ChatGroq(groq_api_key=groq_api_key, model_name="Llama3-8b-8192")
+    llm = ChatGroCITYq(groq_api_key=groq_api_key, model_name="Llama3-8b-8192")
 
     prompt_template = PromptTemplate(
         template=""" 
